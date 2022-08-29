@@ -14,6 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 全局请求拦截器
+ */
 @Component
 @Slf4j
 public class RefreshTokenInterceptor implements HandlerInterceptor {
@@ -28,6 +31,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
         log.debug("前端请求头中的token信息: {}",token);
         //判断token是否为空白 null 空字符串："" 空格、全角空格、制表符、换行符，等不可见字符
         if (StrUtil.isBlank(token)){
+            //放行到下一个拦截器,统一处理
             return true;
         }
         //TODO 基于token获取redis中的用户
@@ -36,16 +40,15 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
                 .entries(RedisConstants.LOGIN_USER_KEY + token);
         //判断用户是否存在
         if (userMap.isEmpty()){
+            //放行到下一个拦截器,统一处理
             return true;
         }
         //TODO 将查询到的Hash数据转为UserDTO对象
         UserDTO userDTO = BeanUtil.fillBeanWithMap(userMap, new UserDTO(), false);
-
         //存在,保存用户信息到ThreadLocal
         UserHolder.saveUser(userDTO);
         //TODO 刷新token的有效期
         stringRedisTemplate.expire(RedisConstants.LOGIN_USER_KEY+token,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
-
         //放行
         return true;
     }

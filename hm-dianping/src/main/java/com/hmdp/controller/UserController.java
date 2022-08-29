@@ -35,11 +35,11 @@ public class UserController {
 
     /**
      * 发送手机验证码
+     * @param phone url路径参数
      */
-    @PostMapping("code")
+    @PostMapping("/code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
         //发送短信验证码并保存验证码
-
         return userService.sendCode(phone,session);
     }
 

@@ -116,6 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         HashOperations<String, Object, Object> ops = stringRedisTemplate.opsForHash();
         String tokenKey = LOGIN_USER_KEY + token;
         ops.putAll(tokenKey, userMap);
+
         //防止用户过多导致Redis中数据量过大
         stringRedisTemplate.expire(tokenKey,LOGIN_USER_TTL,TimeUnit.MINUTES);
 

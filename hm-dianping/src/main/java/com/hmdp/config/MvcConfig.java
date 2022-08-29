@@ -22,7 +22,7 @@ public class MvcConfig implements WebMvcConfigurer {
                         "/user/login",          //放行登陆请求
                         "/blog/hot",            //放行有关博客热点的请求
                         "/shop/**",             //放行有关店铺的所有请求
-                        "/shop-type/**",         //放行有关店铺的所有请求
+                        "/shop-type/**",         //放行有关店铺类型的所有请求
                         "/upload/**",           //方便测试,放行上传
                         "/voucher/**"           //方便测试,放行优惠券
                 ).order(1);//order 执行先后 值小先执行
