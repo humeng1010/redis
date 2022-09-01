@@ -131,8 +131,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         //2.判断是否存在商铺信息
         if (StrUtil.isNotBlank(shopJSON)) {
             //3.存在,返回
-            Shop shop = JSONUtil.toBean(shopJSON, Shop.class);
-            return shop;
+            return JSONUtil.toBean(shopJSON, Shop.class);
         }
         //判断是否为空字符串  ->   防止缓存穿透
 //        if (shopJSON!=null){ //经过上面的if判断过滤后,剩下的只有 null 或者 "" 或者 不可见字符
@@ -177,7 +176,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             shop = this.getById(id);
             //5.数据库中也不存在,返回错误
             if (shop==null){
-                //将空字符串写入到缓存中,并设置2分钟的过期时间
+                //将空字符串写入到缓存中,防止缓存穿透,并设置2分钟的过期时间
                 stringRedisTemplate.opsForValue().set(key,"",SHOP_NULL_TTL,TimeUnit.MINUTES);
 
                 return null;
