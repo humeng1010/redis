@@ -47,10 +47,14 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 //        Shop shop = queryWithPassThrough(id);
         Shop shop = cacheClient
                 .queryWithPassThrough(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+
         //互斥锁解决 缓存击穿
 //        Shop shop = queryWithMutex(id);
+
         //逻辑过期解决 缓存击穿
 //        Shop shop = queryWithLogicExpire(id);
+
+        //如果返回值为null,则是数据库中没有该数据,或者已经做好啦缓存穿透,在redis中存储的为空字符串
         if (shop==null){
             return Result.fail("店铺不存在");
         }
