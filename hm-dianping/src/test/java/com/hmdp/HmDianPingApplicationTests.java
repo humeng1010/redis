@@ -20,10 +20,10 @@ class HmDianPingApplicationTests {
     void testRedisIdWorker() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(300);
         long before = System.currentTimeMillis();
-        //300个线程
+        //300个线程模拟300个用户
         for (int i = 0; i < 300; i++) {
             executorService.submit(()->{
-                //每个线程执行100次
+                //每个线程执行100次,模拟每个用户100次订单
                 for (int j = 0; j < 100; j++) {
                     long id = redisIdWorker.nextId("order");
                     System.out.println("id = " + id);
