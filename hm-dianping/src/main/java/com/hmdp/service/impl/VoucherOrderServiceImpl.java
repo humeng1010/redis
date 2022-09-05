@@ -8,9 +8,11 @@ import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisIdWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private ISeckillVoucherService seckillVoucherService;
     @Resource
     private RedisIdWorker redisIdWorker;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -54,11 +58,26 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         //使用用户的id作为锁,由于toString方法底层还是调用了new String() 每次还是产生了一个新的对象 所以调用intern()方法返回在字符串常量池中已经存在的字符串,就是同一个字符串对象了
         Long userId = UserHolder.getUser().getId();
-        synchronized (userId.toString().intern()) {
+//        synchronized (userId.toString().intern()) {
+        //基于Redis的分布式锁
+        //创建锁对象
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        //尝试获取锁 并设置超时时间
+        boolean isLock = lock.tryLock(5);
+        //判断是否获取锁成功
+        if (!isLock){
+            //获取锁失败
+            return Result.fail("不允许重复下单");
+        }
+        try {
             //获取代理对象(事务)
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.createVoucherOrder(voucherId);
+        } finally {
+            //释放锁
+            lock.unlock();
         }
+//        }
     }
 
     @Transactional
