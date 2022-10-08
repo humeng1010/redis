@@ -36,8 +36,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private ISeckillVoucherService seckillVoucherService;
     @Resource
     private RedisIdWorker redisIdWorker;
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+
+    /*@Autowired
+    private StringRedisTemplate stringRedisTemplate;*/
 
     @Resource
     private RedissonClient redissonClient;
