@@ -148,7 +148,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         List<User> users = userService.query()
                 .in("id",ids).last(StrUtil.format("order by field ( id,{} )",idStr)).list();
 
-        List<UserDTO> userDTOList = users.stream().map(user -> BeanUtil.copyProperties(user, UserDTO.class)).collect(Collectors.toList());
+        List<UserDTO> userDTOList = users.stream()
+                .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
+                .collect(Collectors.toList());
         //返回
         return Result.ok(userDTOList);
     }
