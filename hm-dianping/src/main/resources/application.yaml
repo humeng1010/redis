@@ -22,6 +22,9 @@ spring:
         time-between-eviction-runs: 10s
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
+  servlet:
+    multipart:
+      max-file-size: 10MB # 文件上传最大大小
 mybatis-plus:
   type-aliases-package: com.hmdp.entity # 别名扫描包
 # 日志
