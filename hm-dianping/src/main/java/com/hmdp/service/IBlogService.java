@@ -26,4 +26,8 @@ public interface IBlogService extends IService<Blog> {
      * @return 点赞列表 前五个
      */
     Result queryBlogLikes(Long id);
+
+    Result saveBlog(Blog blog);
+
+    Result queryBlogOfFollow(Long max, Integer offset);
 }
