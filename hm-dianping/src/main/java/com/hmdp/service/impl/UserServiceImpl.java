@@ -15,6 +15,7 @@ import com.hmdp.service.IUserService;
 import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RegexUtils;
 import com.hmdp.utils.SystemConstants;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,6 +125,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         //TODO 8.返回token
         return Result.ok(token);
+    }
+
+    /**
+     * 签到功能:redis的 setbig命令
+     * @return
+     */
+    @Override
+    public Result sign() {
+        //1.获取当前用户
+        Long id = UserHolder.getUser().getId();
+        //2.获取日期
+        LocalDateTime now = LocalDateTime.now();
+        //3.拼接key
+        String keysuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY+id+keysuffix;
+        //4.获取今天是本月的第几天
+        int dayOfMonth = now.getDayOfMonth();//1-31
+        //5.写入redis SETBIT key offset 1
+        stringRedisTemplate.opsForValue().setBit(key,dayOfMonth-1,true);
+        return Result.ok();
     }
 
     private User createUserWithPhone(String phone) {

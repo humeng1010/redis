@@ -93,4 +93,10 @@ public class UserController {
     }
 
 
+    @PostMapping("/sign")
+    public Result sign(){
+        return userService.sign();
+    }
+
+
 }
