@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -31,9 +32,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.utils.RedisConstants.*;
@@ -42,9 +41,7 @@ import static com.hmdp.utils.RedisConstants.*;
  * <p>
  * 服务实现类
  * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+
  */
 @Service
 @Slf4j
@@ -145,6 +142,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //5.写入redis SETBIT key offset 1
         stringRedisTemplate.opsForValue().setBit(key,dayOfMonth-1,true);
         return Result.ok();
+    }
+
+    /**
+     * 统计签到总数
+     * @return
+     */
+    @Override
+    public Result signCount() {
+        //1.获取当前用户
+        Long id = UserHolder.getUser().getId();
+        //2.获取日期
+        LocalDateTime now = LocalDateTime.now();
+        //3.拼接key
+        String keysuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY+id+keysuffix;
+        //4.获取今天是本月的第几天
+        int dayOfMonth = now.getDayOfMonth();//1-31
+        //获取本月签到记录
+        List<Long> result = stringRedisTemplate.opsForValue().bitField(
+                key,
+                BitFieldSubCommands.create()
+                        .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0));
+        if (result==null||result.isEmpty()){
+            return Result.ok(Collections.emptyList());
+        }
+        Long num = result.get(0);
+        if (num==null||num==0){
+            return Result.ok(0);
+        }
+
+        int count = 0;
+        while (true){
+            if ((num & 1) == 0) {
+                break;
+            }else {
+                count++;
+            }
+            num>>>=1;
+        }
+
+        return Result.ok(count);
     }
 
     private User createUserWithPhone(String phone) {
